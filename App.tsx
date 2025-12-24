@@ -64,9 +64,9 @@ const App: React.FC = () => {
           <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-4">Falta Configuración</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">Configuración Requerida</h1>
           <p className="text-slate-600 mb-6 text-sm leading-relaxed">
-            Para que la base de datos de <strong>Supabase</strong> funcione, necesitas añadir las variables de entorno en tu panel de control de despliegue (Vercel/Netlify) o en un archivo <code className="bg-slate-100 px-1 rounded text-red-500">.env.local</code>.
+            Para que la aplicación funcione en Vercel, debes añadir las siguientes variables de entorno en el panel de control de tu proyecto:
           </p>
           <div className="space-y-3 text-left mb-8">
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs font-mono">
@@ -114,7 +114,7 @@ const App: React.FC = () => {
   };
 
   const handleDeleteInventoryItem = async (id: string) => {
-    // Optimistic update
+    // Actualización optimista: borramos de la UI inmediatamente
     const previousInventory = [...inventory];
     setInventory(prev => prev.filter(item => item.id !== id));
 
@@ -122,7 +122,7 @@ const App: React.FC = () => {
 
     if (error) {
       console.error("Error deleting inventory item:", error);
-      alert("Error al eliminar el registro.");
+      alert("No se pudo eliminar el registro de la nube. Restaurando...");
       setInventory(previousInventory);
     }
   };
@@ -176,14 +176,14 @@ const App: React.FC = () => {
   };
 
   const handleClearData = async () => {
-    if (confirm("¿Estás seguro de que quieres borrar TODO el historial de conteo de la base de datos?")) {
+    if (confirm("¿Estás seguro de que quieres borrar TODO el historial de inventario?")) {
       setInventory([]);
       await supabase.from('inventory').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     }
   };
 
   const handleImportData = (data: any) => {
-    alert("La función de importar copia de seguridad está desactivada en modo Nube.");
+    alert("Función de restauración no disponible en modo Nube actualmente.");
   };
 
   const renderView = () => {
@@ -191,7 +191,7 @@ const App: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center h-64 text-slate-500">
           <RefreshCw className="animate-spin mb-4" size={32} />
-          <p>Sincronizando con la nube...</p>
+          <p>Cargando datos...</p>
         </div>
       );
     }
@@ -256,7 +256,7 @@ const App: React.FC = () => {
                 <Tags size={28} />
               </div>
               <h2 className="text-lg font-bold text-slate-800 mb-2">Productos</h2>
-              <p className="text-slate-500 text-xs">Asigna productos a tus categorías.</p>
+              <p className="text-slate-500 text-xs">Gestión de catálogo y categorías.</p>
             </button>
             <button 
               onClick={() => setCurrentView('entry')}
@@ -265,8 +265,8 @@ const App: React.FC = () => {
               <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-blue-600">
                 <ClipboardPen size={28} />
               </div>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">Inventario</h2>
-              <p className="text-slate-500 text-xs">Registra stock rápidamente.</p>
+              <h2 className="text-lg font-bold text-slate-800 mb-2">Inventariar</h2>
+              <p className="text-slate-500 text-xs">Añadir conteo de stock rápido.</p>
             </button>
             <button 
               onClick={() => setCurrentView('results')}
@@ -276,7 +276,7 @@ const App: React.FC = () => {
                 <BarChart3 size={28} />
               </div>
               <h2 className="text-lg font-bold text-slate-800 mb-2">Resultados</h2>
-              <p className="text-slate-500 text-xs">Tabla resumen y exportación.</p>
+              <p className="text-slate-500 text-xs">Ver tablas y exportar a Excel.</p>
             </button>
             <button 
               onClick={() => setCurrentView('settings')}
@@ -286,7 +286,7 @@ const App: React.FC = () => {
                 <SettingsIcon size={28} />
               </div>
               <h2 className="text-lg font-bold text-slate-800 mb-2">Ajustes</h2>
-              <p className="text-slate-500 text-xs">Zonas, categorías y datos.</p>
+              <p className="text-slate-500 text-xs">Zonas y configuración de datos.</p>
             </button>
           </div>
         );
