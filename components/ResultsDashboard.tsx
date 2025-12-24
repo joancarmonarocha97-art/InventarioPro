@@ -1,13 +1,13 @@
-
 import React, { useMemo } from 'react';
 import { InventoryItem } from '../types';
-import { Download, Table as TableIcon } from 'lucide-react';
+import { Download, Table as TableIcon, Trash2 } from 'lucide-react';
 
 interface ResultsDashboardProps {
   data: InventoryItem[];
+  onDeleteItem?: (id: string) => void;
 }
 
-const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data }) => {
+const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, onDeleteItem }) => {
 
   // Sort data by Category first, then by Product Name
   const sortedData = useMemo(() => {
@@ -42,6 +42,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDeleteClick = (id: string, productName: string) => {
+    if (onDeleteItem && confirm(`¿Estás seguro de que quieres eliminar el registro de "${productName}"?`)) {
+      onDeleteItem(id);
+    }
   };
 
   if (data.length === 0) {
@@ -86,11 +92,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data }) => {
                 <th className="px-6 py-3 font-semibold text-slate-700">Ubicación</th>
                 <th className="px-6 py-3 font-semibold text-slate-700 text-right">Cantidad</th>
                 <th className="px-6 py-3 font-semibold text-slate-700 text-right">Hora</th>
+                {onDeleteItem && <th className="px-6 py-3 font-semibold text-slate-700 text-center">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {sortedData.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-3 text-indigo-600 font-medium text-xs uppercase tracking-wider">{item.category}</td>
                   <td className="px-6 py-3 font-medium text-slate-800">{item.productName}</td>
                   <td className="px-6 py-3">
@@ -102,6 +109,17 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data }) => {
                   <td className="px-6 py-3 text-right text-slate-400 text-xs">
                     {new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </td>
+                  {onDeleteItem && (
+                    <td className="px-6 py-3 text-center">
+                      <button
+                        onClick={() => handleDeleteClick(item.id, item.productName)}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        title="Eliminar registro"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
