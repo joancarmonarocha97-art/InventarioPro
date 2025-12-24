@@ -103,7 +103,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, onDeleteItem 
                   <td className="px-6 py-3 text-center">
                     <button
                       onClick={() => confirmDelete(item.id, item.productName)}
-                      className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-all opacity-0 group-hover:opacity-100"
+                      className=""p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       title="Eliminar registro"
                     >
                       <Trash2 size={16} />
