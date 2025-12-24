@@ -9,7 +9,6 @@ import { ClipboardPen, BarChart3, Settings as SettingsIcon, Tags, RefreshCw, Ale
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 const App: React.FC = () => {
-  // Data State
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [products, setProducts] = useState<ProductDef[]>([]);
   const [locations, setLocations] = useState<LocationDef[]>([]);
@@ -18,7 +17,6 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
-  // Initial Fetch from Supabase
   useEffect(() => {
     if (isSupabaseConfigured) {
       fetchData();
@@ -56,40 +54,25 @@ const App: React.FC = () => {
     }
   };
 
-  // Error screen if keys are missing
   if (!isSupabaseConfigured) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-red-100 p-8 text-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-red-100 p-8">
           <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-4">Configuración Requerida</h1>
-          <p className="text-slate-600 mb-6 text-sm leading-relaxed">
-            Para que la aplicación funcione en Vercel, debes añadir las siguientes variables de entorno en el panel de control de tu proyecto:
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">Faltan Variables</h1>
+          <p className="text-slate-600 mb-6 text-sm">
+            Configura las variables de entorno <code className="bg-slate-100 px-1 rounded">VITE_SUPABASE_URL</code> y <code className="bg-slate-100 px-1 rounded">VITE_SUPABASE_ANON_KEY</code> en tu panel de Vercel.
           </p>
-          <div className="space-y-3 text-left mb-8">
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs font-mono">
-              VITE_SUPABASE_URL=...
-            </div>
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs font-mono">
-              VITE_SUPABASE_ANON_KEY=...
-            </div>
-          </div>
-          <a 
-            href="https://supabase.com/dashboard" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-6 rounded-xl transition-all w-full justify-center"
-          >
-            Ir a Supabase <ExternalLink size={16} />
+          <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-6 rounded-xl transition-all w-full justify-center">
+            Panel de Supabase <ExternalLink size={16} />
           </a>
         </div>
       </div>
     );
   }
 
-  // Handlers
   const handleAddItem = async (newItem: Omit<InventoryItem, 'id' | 'timestamp'>) => {
     const timestamp = Date.now();
     const tempId = crypto.randomUUID();
@@ -105,8 +88,7 @@ const App: React.FC = () => {
     }]).select();
 
     if (error) {
-      console.error("Error inserting inventory:", error);
-      alert("Error al guardar en la nube.");
+      alert("Error al guardar registro.");
       setInventory(prev => prev.filter(i => i.id !== tempId));
     } else if (data) {
       setInventory(prev => prev.map(i => i.id === tempId ? { ...i, id: data[0].id } : i));
@@ -114,16 +96,12 @@ const App: React.FC = () => {
   };
 
   const handleDeleteInventoryItem = async (id: string) => {
-    // Actualización optimista: borramos de la UI inmediatamente
-    const previousInventory = [...inventory];
+    const original = [...inventory];
     setInventory(prev => prev.filter(item => item.id !== id));
-
     const { error } = await supabase.from('inventory').delete().eq('id', id);
-
     if (error) {
-      console.error("Error deleting inventory item:", error);
-      alert("No se pudo eliminar el registro de la nube. Restaurando...");
-      setInventory(previousInventory);
+      alert("Error al eliminar.");
+      setInventory(original);
     }
   };
 
@@ -131,11 +109,8 @@ const App: React.FC = () => {
     const tempId = crypto.randomUUID();
     setProducts(prev => [...prev, { ...newProduct, id: tempId }]);
     const { data, error } = await supabase.from('products').insert([newProduct]).select();
-    if (error) {
-      setProducts(prev => prev.filter(p => p.id !== tempId));
-    } else if (data) {
-      setProducts(prev => prev.map(p => p.id === tempId ? { ...p, id: data[0].id } : p));
-    }
+    if (error) setProducts(prev => prev.filter(p => p.id !== tempId));
+    else if (data) setProducts(prev => prev.map(p => p.id === tempId ? { ...p, id: data[0].id } : p));
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -147,11 +122,8 @@ const App: React.FC = () => {
     const tempId = crypto.randomUUID();
     setLocations(prev => [...prev, { ...newLoc, id: tempId }]);
     const { data, error } = await supabase.from('locations').insert([newLoc]).select();
-    if (error) {
-      setLocations(prev => prev.filter(l => l.id !== tempId));
-    } else if (data) {
-      setLocations(prev => prev.map(l => l.id === tempId ? { ...l, id: data[0].id } : l));
-    }
+    if (error) setLocations(prev => prev.filter(l => l.id !== tempId));
+    else if (data) setLocations(prev => prev.map(l => l.id === tempId ? { ...l, id: data[0].id } : l));
   };
 
   const handleDeleteLocation = async (id: string) => {
@@ -163,11 +135,8 @@ const App: React.FC = () => {
     const tempId = crypto.randomUUID();
     setCategories(prev => [...prev, { ...newCat, id: tempId }]);
     const { data, error } = await supabase.from('categories').insert([newCat]).select();
-    if (error) {
-      setCategories(prev => prev.filter(c => c.id !== tempId));
-    } else if (data) {
-      setCategories(prev => prev.map(c => c.id === tempId ? { ...c, id: data[0].id } : c));
-    }
+    if (error) setCategories(prev => prev.filter(c => c.id !== tempId));
+    else if (data) setCategories(prev => prev.map(c => c.id === tempId ? { ...c, id: data[0].id } : c));
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -176,132 +145,52 @@ const App: React.FC = () => {
   };
 
   const handleClearData = async () => {
-    if (confirm("¿Estás seguro de que quieres borrar TODO el historial de inventario?")) {
+    if (confirm("¿Borrar todo el historial?")) {
       setInventory([]);
       await supabase.from('inventory').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     }
   };
 
-  const handleImportData = (data: any) => {
-    alert("Función de restauración no disponible en modo Nube actualmente.");
-  };
-
   const renderView = () => {
-    if (loading) {
-      return (
-        <div className="flex flex-col items-center justify-center h-64 text-slate-500">
-          <RefreshCw className="animate-spin mb-4" size={32} />
-          <p>Cargando datos...</p>
-        </div>
-      );
-    }
+    if (loading) return (
+      <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+        <RefreshCw className="animate-spin mb-4" size={32} />
+        <p>Sincronizando...</p>
+      </div>
+    );
 
     switch (currentView) {
-      case 'products':
-        return (
-          <div className="max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-300">
-            <ProductManager 
-              products={products} 
-              categories={categories}
-              onAddProduct={handleAddProduct} 
-              onDeleteProduct={handleDeleteProduct}
-              onNavigateToSettings={() => setCurrentView('settings')}
-            />
-          </div>
-        );
-      case 'entry':
-        return (
-          <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-300">
-            <EntryForm 
-              onAddItem={handleAddItem} 
-              products={products}
-              locations={locations}
-              onNavigateToProducts={() => setCurrentView('products')}
-              onNavigateToSettings={() => setCurrentView('settings')}
-            />
-          </div>
-        );
-      case 'results':
-        return (
-          <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-300">
-            <ResultsDashboard data={inventory} onDeleteItem={handleDeleteInventoryItem} />
-          </div>
-        );
-      case 'settings':
-        return (
-           <div className="max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-300">
-             <Settings 
-               inventory={inventory}
-               products={products}
-               locations={locations}
-               categories={categories}
-               onAddLocation={handleAddLocation}
-               onDeleteLocation={handleDeleteLocation}
-               onAddCategory={handleAddCategory}
-               onDeleteCategory={handleDeleteCategory}
-               onClearData={handleClearData}
-               onImportData={handleImportData}
-             />
-           </div>
-        );
-      case 'home':
-      default:
-        return (
-          <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <button 
-              onClick={() => setCurrentView('products')}
-              className="group relative flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition-all duration-300 text-center"
-            >
-              <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-indigo-600">
-                <Tags size={28} />
-              </div>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">Productos</h2>
-              <p className="text-slate-500 text-xs">Gestión de catálogo y categorías.</p>
-            </button>
-            <button 
-              onClick={() => setCurrentView('entry')}
-              className="group relative flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all duration-300 text-center"
-            >
-              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-blue-600">
-                <ClipboardPen size={28} />
-              </div>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">Inventariar</h2>
-              <p className="text-slate-500 text-xs">Añadir conteo de stock rápido.</p>
-            </button>
-            <button 
-              onClick={() => setCurrentView('results')}
-              className="group relative flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-purple-500 hover:shadow-md transition-all duration-300 text-center"
-            >
-              <div className="w-14 h-14 bg-purple-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-purple-600">
-                <BarChart3 size={28} />
-              </div>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">Resultados</h2>
-              <p className="text-slate-500 text-xs">Ver tablas y exportar a Excel.</p>
-            </button>
-            <button 
-              onClick={() => setCurrentView('settings')}
-              className="group relative flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-slate-500 hover:shadow-md transition-all duration-300 text-center"
-            >
-              <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-slate-600">
-                <SettingsIcon size={28} />
-              </div>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">Ajustes</h2>
-              <p className="text-slate-500 text-xs">Zonas y configuración de datos.</p>
-            </button>
-          </div>
-        );
+      case 'products': return <ProductManager products={products} categories={categories} onAddProduct={handleAddProduct} onDeleteProduct={handleDeleteProduct} onNavigateToSettings={() => setCurrentView('settings')} />;
+      case 'entry': return <EntryForm onAddItem={handleAddItem} products={products} locations={locations} onNavigateToProducts={() => setCurrentView('products')} onNavigateToSettings={() => setCurrentView('settings')} />;
+      case 'results': return <ResultsDashboard data={inventory} onDeleteItem={handleDeleteInventoryItem} />;
+      case 'settings': return <Settings inventory={inventory} products={products} locations={locations} categories={categories} onAddLocation={handleAddLocation} onDeleteLocation={handleDeleteLocation} onAddCategory={handleAddCategory} onDeleteCategory={handleDeleteCategory} onClearData={handleClearData} onImportData={() => {}} />;
+      default: return (
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+          <button onClick={() => setCurrentView('products')} className="group p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 transition-all text-center">
+            <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mb-4 mx-auto text-indigo-600"><Tags size={28} /></div>
+            <h2 className="text-lg font-bold">Productos</h2>
+          </button>
+          <button onClick={() => setCurrentView('entry')} className="group p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all text-center">
+            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 mx-auto text-blue-600"><ClipboardPen size={28} /></div>
+            <h2 className="text-lg font-bold">Inventariar</h2>
+          </button>
+          <button onClick={() => setCurrentView('results')} className="group p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-purple-500 transition-all text-center">
+            <div className="w-14 h-14 bg-purple-50 rounded-full flex items-center justify-center mb-4 mx-auto text-purple-600"><BarChart3 size={28} /></div>
+            <h2 className="text-lg font-bold">Resultados</h2>
+          </button>
+          <button onClick={() => setCurrentView('settings')} className="group p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-slate-500 transition-all text-center">
+            <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4 mx-auto text-slate-600"><SettingsIcon size={28} /></div>
+            <h2 className="text-lg font-bold">Ajustes</h2>
+          </button>
+        </div>
+      );
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Header currentView={currentView} onNavigateHome={() => {
-        setCurrentView('home');
-        if (isSupabaseConfigured) fetchData();
-      }} />
-      <main className="p-4 md:p-8">
-        {renderView()}
-      </main>
+      <Header currentView={currentView} onNavigateHome={() => setCurrentView('home')} />
+      <main className="p-4 md:p-8">{renderView()}</main>
     </div>
   );
 };
