@@ -48,7 +48,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, onDeleteItem 
   if (data.length === 0) {
     return (
       <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
-        <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+        <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-400">
           <TableIcon className="text-slate-400" size={32} />
         </div>
         <h3 className="text-lg font-medium text-slate-900">Sin registros</h3>
